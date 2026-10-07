@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { FiChevronRight } from 'react-icons/fi';
+import { FiChevronRight, FiShoppingCart } from 'react-icons/fi';
 import TopBanner from '../components/TopBanner';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -31,7 +31,7 @@ function Cart() {
         {items.length === 0 ? (
           /* ── Empty state ── */
           <div className="flex flex-col items-center justify-center gap-6 py-24 text-center">
-            <span className="text-7xl">🛒</span>
+            <FiShoppingCart aria-hidden="true" className="h-16 w-16" />
             <div>
               <p className="text-xl font-bold">Your cart is empty</p>
               <p className="mt-1 text-sm text-zinc-500">Looks like you haven&apos;t added anything yet.</p>
