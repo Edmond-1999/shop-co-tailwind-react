@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../store/cartSlice';
+import {
+  useGetProductByIdQuery,
+  useGetProductsByCategoryQuery,
+} from '../store/productsApi';
 import { FaCheckCircle } from 'react-icons/fa';
 import { FiChevronRight } from 'react-icons/fi';
 import TopBanner from '../components/TopBanner';
@@ -23,10 +27,12 @@ function ProductDetail() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [apiProduct, setApiProduct] = useState(null);
-  const [loadedId, setLoadedId] = useState(null);
-  const [error, setError] = useState(null);
-  const loading = loadedId !== id && !error;
+  const productQuery = useGetProductByIdQuery(id);
+  const product = productQuery.currentData;
+  const productError = productQuery.error?.data?.message
+    || productQuery.error?.error
+    || 'Failed to load product details';
+  const loading = !product && productQuery.isFetching;
 
   // Gallery state
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -48,8 +54,12 @@ function ProductDetail() {
     comment: '',
   });
 
-  // Related products
-  const [relatedProducts, setRelatedProducts] = useState([]);
+  const relatedProductsQuery = useGetProductsByCategoryQuery(product?.category, {
+    skip: !product?.category,
+  });
+  const relatedProducts = (relatedProductsQuery.currentData || [])
+    .filter((relatedProduct) => String(relatedProduct.id) !== String(product?.id))
+    .slice(0, 4);
 
   // Toast feedback
   const [toast, setToast] = useState(null);
@@ -61,114 +71,24 @@ function ProductDetail() {
     }, 3500);
   };
 
-  // Derive active product
-  const product = apiProduct;
-
   // Derive images
   const productImages = product?.images || [];
   const activeImage = productImages[selectedImageIndex] || productImages[0];
 
-  const apiReviews = apiProduct?.formattedReviews || [];
+  const apiReviews = product?.formattedReviews || [];
   const reviews = [...customReviews, ...apiReviews];
 
   // Reset state during render if ID changes
   const [prevId, setPrevId] = useState(id);
   if (prevId !== id) {
     setPrevId(id);
-    setApiProduct(null);
-    setError(null);
     setSelectedImageIndex(0);
     setQuantity(1);
-    setRelatedProducts([]);
   }
 
-  // Fetch product data from DummyJSON.
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    let isMounted = true;
-
-    fetch(`https://dummyjson.com/products/${id}`)
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to load product details');
-        return res.json();
-      })
-      .then((data) => {
-        if (!isMounted) return;
-
-        let imgs = Array.isArray(data.images) && data.images.length > 0 ? data.images : [data.thumbnail];
-        if (imgs.length === 1) {
-          imgs = [imgs[0], imgs[0], imgs[0]];
-        } else if (imgs.length === 2) {
-          imgs = [imgs[0], imgs[1], imgs[0]];
-        }
-
-        const disc = data.discountPercentage || 0;
-        const computedOldPrice = disc > 0 ? Math.round(data.price / (1 - disc / 100)) : null;
-
-        let formattedReviews = [];
-        if (data.reviews && data.reviews.length > 0) {
-          formattedReviews = data.reviews.map((rev, idx) => ({
-            id: `api-${idx}`,
-            reviewerName: rev.reviewerName || 'Verified Buyer',
-            rating: rev.rating || 5,
-            verified: true,
-            comment: `"${rev.comment}"`,
-            date: new Date(rev.date).toLocaleDateString('en-US', {
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric',
-            }),
-          }));
-        }
-
-        const mergedProduct = {
-          ...data,
-          images: imgs.slice(0, 3),
-          oldPrice: computedOldPrice,
-          discountPercentage: disc > 0 ? Math.round(disc) : null,
-          formattedReviews,
-        };
-
-        setApiProduct(mergedProduct);
-        setError(null);
-        setLoadedId(id);
-      })
-      .catch((err) => {
-        if (isMounted) {
-          setError(err.message);
-          setLoadedId(id);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
   }, [id]);
-
-  // Fetch related products from DummyJSON API based on category or apparel
-  useEffect(() => {
-    if (!product) return;
-
-    let isMounted = true;
-
-    fetch(`https://dummyjson.com/products/category/${encodeURIComponent(product.category)}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (!isMounted) return;
-        const filtered = (data.products || [])
-          .filter((relatedProduct) => String(relatedProduct.id) !== String(product.id))
-          .slice(0, 4);
-        setRelatedProducts(filtered);
-      })
-      .catch(() => {
-        if (isMounted) setRelatedProducts([]);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [product]);
 
   const sortedReviews = [...reviews];
   if (reviewSort === 'highest') {
@@ -251,10 +171,10 @@ function ProductDetail() {
               <p className="text-sm font-medium">Loading product details...</p>
             </div>
           </div>
-        ) : error ? (
+        ) : productQuery.isError ? (
           <div className="grid min-h-[50vh] place-items-center text-center">
             <div>
-              <p className="text-lg font-semibold text-red-500">{error}</p>
+              <p className="text-lg font-semibold text-red-500">{productError}</p>
               <button
                 onClick={() => navigate('/')}
                 className="mt-4 rounded-full bg-black px-6 py-2.5 text-sm font-semibold text-white"

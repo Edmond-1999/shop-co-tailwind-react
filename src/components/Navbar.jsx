@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { FiMenu, FiSearch, FiShoppingCart, FiUser, FiX } from 'react-icons/fi';
 import { selectCartCount } from '../store/cartSlice';
+import { useGetProductsQuery } from '../store/productsApi';
 
 const navigationLinks = [
   { label: 'On Sale', path: '/#top-selling' },
@@ -15,7 +16,7 @@ function Navbar() {
   const [searchText, setSearchText] = useState('');
   const navigate = useNavigate();
   const cartCount = useSelector(selectCartCount);
-  const products = useSelector((state) => state.products.items);
+  const { data: products = [] } = useGetProductsQuery(8);
 
   const submitSearch = (event) => {
     event.preventDefault();
