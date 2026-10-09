@@ -2,10 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../store/cartSlice';
-import {
-  useGetProductByIdQuery,
-  useGetProductsByCategoryQuery,
-} from '../store/productsApi';
 import { FaCheckCircle } from 'react-icons/fa';
 import { FiChevronRight } from 'react-icons/fi';
 import TopBanner from '../components/TopBanner';
@@ -27,12 +23,10 @@ function ProductDetail() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const productQuery = useGetProductByIdQuery(id);
-  const product = productQuery.currentData;
-  const productError = productQuery.error?.data?.message
-    || productQuery.error?.error
-    || 'Failed to load product details';
-  const loading = !product && productQuery.isFetching;
+  const [apiProduct, setApiProduct] = useState(null);
+  const [loadedId, setLoadedId] = useState(null);
+  const [error, setError] = useState(null);
+  const loading = loadedId !== id && !error;
 
   // Gallery state
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -54,12 +48,8 @@ function ProductDetail() {
     comment: '',
   });
 
-  const relatedProductsQuery = useGetProductsByCategoryQuery(product?.category, {
-    skip: !product?.category,
-  });
-  const relatedProducts = (relatedProductsQuery.currentData || [])
-    .filter((relatedProduct) => String(relatedProduct.id) !== String(product?.id))
-    .slice(0, 4);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [relatedError, setRelatedError] = useState(null);
 
   // Toast feedback
   const [toast, setToast] = useState(null);
@@ -70,6 +60,8 @@ function ProductDetail() {
       setToast(null);
     }, 3500);
   };
+
+  const product = apiProduct;
 
   // Derive images
   const productImages = product?.images || [];
@@ -82,13 +74,103 @@ function ProductDetail() {
   const [prevId, setPrevId] = useState(id);
   if (prevId !== id) {
     setPrevId(id);
+    setApiProduct(null);
+    setError(null);
     setSelectedImageIndex(0);
     setQuantity(1);
+    setRelatedProducts([]);
+    setRelatedError(null);
   }
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    let isMounted = true;
+
+    fetch(`https://dummyjson.com/products/${id}`)
+      .then((response) => {
+        if (!response.ok) throw new Error('Failed to load product details');
+        return response.json();
+      })
+      .then((data) => {
+        if (!isMounted) return;
+
+        let images = Array.isArray(data.images) && data.images.length > 0
+          ? data.images
+          : [data.thumbnail];
+        if (images.length === 1) {
+          images = [images[0], images[0], images[0]];
+        } else if (images.length === 2) {
+          images = [images[0], images[1], images[0]];
+        }
+
+        const discountPercentage = data.discountPercentage || 0;
+        const oldPrice = discountPercentage > 0
+          ? Math.round(data.price / (1 - discountPercentage / 100))
+          : null;
+        const formattedReviews = (data.reviews || []).map((review, index) => ({
+          id: `api-${index}`,
+          reviewerName: review.reviewerName || 'Verified Buyer',
+          rating: review.rating || 5,
+          verified: true,
+          comment: `"${review.comment}"`,
+          date: new Date(review.date).toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+          }),
+        }));
+
+        setApiProduct({
+          ...data,
+          images: images.slice(0, 3),
+          oldPrice,
+          discountPercentage: discountPercentage > 0 ? Math.round(discountPercentage) : null,
+          formattedReviews,
+        });
+        setError(null);
+        setLoadedId(id);
+      })
+      .catch((fetchError) => {
+        if (isMounted) {
+          setError(fetchError.message);
+          setLoadedId(id);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
+
+  useEffect(() => {
+    if (!product) return undefined;
+
+    let isMounted = true;
+
+    fetch(`https://dummyjson.com/products/category/${encodeURIComponent(product.category)}`)
+      .then((response) => {
+        if (!response.ok) throw new Error('Failed to load related products');
+        return response.json();
+      })
+      .then((data) => {
+        if (!isMounted) return;
+        setRelatedError(null);
+        setRelatedProducts((data.products || [])
+          .filter((relatedProduct) => String(relatedProduct.id) !== String(product.id))
+          .slice(0, 4));
+      })
+      .catch(() => {
+        if (isMounted) {
+          setRelatedProducts([]);
+          setRelatedError('Unable to load related products.');
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [product]);
 
   const sortedReviews = [...reviews];
   if (reviewSort === 'highest') {
@@ -171,10 +253,10 @@ function ProductDetail() {
               <p className="text-sm font-medium">Loading product details...</p>
             </div>
           </div>
-        ) : productQuery.isError ? (
+        ) : error ? (
           <div className="grid min-h-[50vh] place-items-center text-center">
             <div>
-              <p className="text-lg font-semibold text-red-500">{productError}</p>
+              <p className="text-lg font-semibold text-red-500">{error}</p>
               <button
                 onClick={() => navigate('/')}
                 className="mt-4 rounded-full bg-black px-6 py-2.5 text-sm font-semibold text-white"
@@ -233,16 +315,20 @@ function ProductDetail() {
             </ProductTabs>
 
             {/* "YOU MIGHT ALSO LIKE" Section */}
-            {relatedProducts.length > 0 && <section className="mt-16 sm:mt-24 border-t border-zinc-100 pt-14 sm:pt-20">
+            {(relatedProducts.length > 0 || relatedError) && <section className="mt-16 sm:mt-24 border-t border-zinc-100 pt-14 sm:pt-20">
               <h2 className="text-center text-3xl sm:text-4xl font-black uppercase tracking-tight">
                 YOU MIGHT ALSO LIKE
               </h2>
 
-              <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-4 sm:gap-6">
-                {relatedProducts.map((rel) => (
-                  <ProductCard key={rel.id} product={rel} />
-                ))}
-              </div>
+              {relatedError ? (
+                <p className="mt-10 text-center text-sm text-red-500">{relatedError}</p>
+              ) : (
+                <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-4 sm:gap-6">
+                  {relatedProducts.map((rel) => (
+                    <ProductCard key={rel.id} product={rel} />
+                  ))}
+                </div>
+              )}
             </section>}
           </>
         )}

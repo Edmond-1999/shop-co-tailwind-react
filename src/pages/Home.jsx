@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { fetchProducts } from '../store/productsSlice';
 import TopBanner from '../components/TopBanner';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
@@ -12,8 +14,13 @@ import Newsletter from '../components/Newsletter';
 import Footer from '../components/Footer';
 
 function Home() {
+  const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    dispatch(fetchProducts());
+  }, [dispatch]);
 
   useEffect(() => {
     if (!location.hash) return;
