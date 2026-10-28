@@ -4,7 +4,7 @@ import { addToCart } from '../store/cartSlice';
 import ProductGallery from './ProductGallery';
 import ProductInfo from './ProductInfo';
 
-function ProductPurchaseSection({ product, onToast }) {
+function ProductPurchaseSection({ product }) {
   const dispatch = useDispatch();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -30,7 +30,6 @@ function ProductPurchaseSection({ product, onToast }) {
       image: activeImage || product.thumbnail,
       quantity,
     }));
-    onToast(`Added ${quantity} × ${product.title} to cart!`);
   };
 
   return (

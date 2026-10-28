@@ -4,7 +4,7 @@ import ProductSpecifications from './ProductSpecifications';
 import ProductReviews from './ProductReviews';
 import ProductReviewModal from './ProductReviewModal';
 
-function ProductReviewSection({ product, onToast }) {
+function ProductReviewSection({ product }) {
   const [activeTab, setActiveTab] = useState('reviews');
   const [customReviews, setCustomReviews] = useState([]);
   const [reviewSort, setReviewSort] = useState('latest');
@@ -44,7 +44,6 @@ function ProductReviewSection({ product, onToast }) {
     setCustomReviews((previousReviews) => [newReview, ...previousReviews]);
     setIsWriteReviewOpen(false);
     setNewReviewForm({ name: '', rating: 5, comment: '' });
-    onToast('Your review has been successfully posted!');
   };
 
   return (

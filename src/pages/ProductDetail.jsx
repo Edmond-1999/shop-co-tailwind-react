@@ -1,11 +1,9 @@
-import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FiChevronRight } from 'react-icons/fi';
 import TopBanner from '../components/TopBanner';
 import Navbar from '../components/Navbar';
 import ProductPurchaseSection from '../components/ProductPurchaseSection';
 import ProductReviewSection from '../components/ProductReviewSection';
-import ProductToast from '../components/ProductToast';
 import Newsletter from '../components/Newsletter';
 import Footer from '../components/Footer';
 import useProductDetailData from '../hooks/useProductDetailData';
@@ -14,18 +12,9 @@ function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { product, error, loading } = useProductDetailData(id);
-  const [toast, setToast] = useState(null);
-
-  const showToast = (message) => {
-    setToast(message);
-    setTimeout(() => {
-      setToast(null);
-    }, 3500);
-  };
 
   return (
     <div className="min-h-screen bg-white font-sans text-black selection:bg-zinc-200">
-      <ProductToast message={toast} />
       <TopBanner />
       <Navbar />
 
@@ -64,8 +53,8 @@ function ProductDetail() {
           </div>
         ) : null}
 
-        <ProductPurchaseSection product={product} onToast={showToast} />
-        <ProductReviewSection product={product} onToast={showToast} />
+        <ProductPurchaseSection product={product} />
+        <ProductReviewSection product={product} />
       </main>
 
       <div className="mt-16 sm:mt-24">
