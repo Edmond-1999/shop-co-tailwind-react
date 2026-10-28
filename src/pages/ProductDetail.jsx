@@ -5,7 +5,6 @@ import TopBanner from '../components/TopBanner';
 import Navbar from '../components/Navbar';
 import ProductPurchaseSection from '../components/ProductPurchaseSection';
 import ProductReviewSection from '../components/ProductReviewSection';
-import RelatedProductsSection from '../components/RelatedProductsSection';
 import ProductToast from '../components/ProductToast';
 import Newsletter from '../components/Newsletter';
 import Footer from '../components/Footer';
@@ -14,7 +13,7 @@ import useProductDetailData from '../hooks/useProductDetailData';
 function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { product, error, loading, relatedProducts, relatedError } = useProductDetailData(id);
+  const { product, error, loading } = useProductDetailData(id);
   const [toast, setToast] = useState(null);
 
   const showToast = (message) => {
@@ -67,7 +66,6 @@ function ProductDetail() {
 
         <ProductPurchaseSection product={product} onToast={showToast} />
         <ProductReviewSection product={product} onToast={showToast} />
-        <RelatedProductsSection products={relatedProducts} error={relatedError} />
       </main>
 
       <div className="mt-16 sm:mt-24">

@@ -38,11 +38,6 @@ function formatProduct(data) {
 
 function useProductDetailData(id) {
   const [productResult, setProductResult] = useState({ id: null, product: null, error: null });
-  const [relatedResult, setRelatedResult] = useState({
-    id: null,
-    products: [],
-    error: null,
-  });
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -73,49 +68,10 @@ function useProductDetailData(id) {
   const error = productResult.id === id ? productResult.error : null;
   const loading = productResult.id !== id;
 
-  useEffect(() => {
-    if (!product) return undefined;
-
-    let isMounted = true;
-
-    fetch(`https://dummyjson.com/products/category/${encodeURIComponent(product.category)}`)
-      .then((response) => {
-        if (!response.ok) throw new Error('Failed to load related products');
-        return response.json();
-      })
-      .then((data) => {
-        if (!isMounted) return;
-        setRelatedResult({
-          id: product.id,
-          products: (data.products || [])
-            .filter((relatedProduct) => String(relatedProduct.id) !== String(product.id))
-            .slice(0, 4),
-          error: null,
-        });
-      })
-      .catch(() => {
-        if (isMounted) {
-          setRelatedResult({
-            id: product.id,
-            products: [],
-            error: 'Unable to load related products.',
-          });
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [product]);
-
-  const isRelatedResultCurrent = String(relatedResult.id) === String(product?.id);
-
   return {
     product,
     error,
     loading,
-    relatedProducts: isRelatedResultCurrent ? relatedResult.products : [],
-    relatedError: isRelatedResultCurrent ? relatedResult.error : null,
   };
 }
 
