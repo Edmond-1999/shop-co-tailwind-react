@@ -1,7 +1,6 @@
 const TABS = [
   ['details', 'Product Details'],
   ['reviews', 'Rating & Reviews'],
-  ['faqs', 'FAQs'],
 ];
 
 function ProductTabs({ activeTab, setActiveTab, children }) {

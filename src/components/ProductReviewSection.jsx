@@ -2,7 +2,6 @@ import { useState } from 'react';
 import ProductTabs from './ProductTabs';
 import ProductSpecifications from './ProductSpecifications';
 import ProductReviews from './ProductReviews';
-import ProductFaqs from './ProductFaqs';
 import ProductReviewModal from './ProductReviewModal';
 
 function ProductReviewSection({ product, onToast }) {
@@ -65,7 +64,6 @@ function ProductReviewSection({ product, onToast }) {
                 onWriteReview={() => setIsWriteReviewOpen(true)}
               />
             )}
-            {activeTab === 'faqs' && <ProductFaqs />}
           </div>
         </ProductTabs>
       )}
