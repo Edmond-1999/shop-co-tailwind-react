@@ -19,10 +19,6 @@ function CartItem({ item, dispatch }) {
             <Link to={`/product/${item.id}`} className="text-sm font-bold leading-tight line-clamp-2 hover:text-zinc-600 transition">
               {item.title}
             </Link>
-            <div className="mt-1 space-y-0.5 text-xs text-zinc-500">
-              <p>Size: <span className="text-black font-medium">{item.size}</span></p>
-              <p>Color: <span className="text-black font-medium">{item.color}</span></p>
-            </div>
           </div>
           <button
             onClick={() => dispatch(removeFromCart(item.key))}

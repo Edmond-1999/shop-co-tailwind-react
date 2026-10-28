@@ -3,13 +3,10 @@ import { useDispatch } from 'react-redux';
 import { addToCart } from '../store/cartSlice';
 import ProductGallery from './ProductGallery';
 import ProductInfo from './ProductInfo';
-import { COLORS } from './productOptions';
 
 function ProductPurchaseSection({ product, onToast }) {
   const dispatch = useDispatch();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [selectedColor, setSelectedColor] = useState(COLORS[0]);
-  const [selectedSize, setSelectedSize] = useState('Large');
   const [quantity, setQuantity] = useState(1);
   const [previousProductId, setPreviousProductId] = useState(product?.id);
 
@@ -31,11 +28,9 @@ function ProductPurchaseSection({ product, onToast }) {
       oldPrice: product.oldPrice || null,
       discountPercentage: product.discountPercentage || null,
       image: activeImage || product.thumbnail,
-      color: selectedColor.name,
-      size: selectedSize,
       quantity,
     }));
-    onToast(`Added ${quantity} × ${product.title} (${selectedSize}, ${selectedColor.name}) to cart!`);
+    onToast(`Added ${quantity} × ${product.title} to cart!`);
   };
 
   return (
@@ -49,10 +44,6 @@ function ProductPurchaseSection({ product, onToast }) {
       />
       <ProductInfo
         product={product}
-        selectedColor={selectedColor}
-        setSelectedColor={setSelectedColor}
-        selectedSize={selectedSize}
-        setSelectedSize={setSelectedSize}
         quantity={quantity}
         setQuantity={setQuantity}
         onAddToCart={handleAddToCart}

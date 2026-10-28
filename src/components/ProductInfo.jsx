@@ -1,13 +1,8 @@
-import { FiCheck, FiMinus, FiPlus } from 'react-icons/fi';
+import { FiMinus, FiPlus } from 'react-icons/fi';
 import StarRating from './StarRating';
-import { COLORS, SIZES } from './productOptions';
 
 function ProductInfo({
   product,
-  selectedColor,
-  setSelectedColor,
-  selectedSize,
-  setSelectedSize,
   quantity,
   setQuantity,
   onAddToCart,
@@ -46,54 +41,6 @@ function ProductInfo({
         <p className="mt-4 text-sm sm:text-base leading-relaxed text-zinc-600">
           {product.description}
         </p>
-
-        <hr className="my-6 border-zinc-200" />
-
-        <div>
-          <span className="text-sm font-normal text-zinc-500">Select Colors</span>
-          <div className="mt-3 flex items-center gap-3">
-            {COLORS.map((color) => {
-              const isSelected = selectedColor.id === color.id;
-              return (
-                <button
-                  key={color.id}
-                  onClick={() => setSelectedColor(color)}
-                  style={{ backgroundColor: color.hex }}
-                  aria-label={`Select color ${color.name}`}
-                  className={`relative flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-transform duration-200 hover:scale-110 cursor-pointer ${
-                    isSelected ? 'ring-2 ring-black/20 ring-offset-2' : ''
-                  }`}
-                >
-                  {isSelected && <FiCheck className="text-white text-base stroke-[3]" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <hr className="my-6 border-zinc-200" />
-
-        <div>
-          <span className="text-sm font-normal text-zinc-500">Choose Size</span>
-          <div className="mt-3 flex flex-wrap gap-2.5 sm:gap-3">
-            {SIZES.map((size) => {
-              const isSelected = selectedSize === size;
-              return (
-                <button
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
-                  className={`rounded-full px-5 py-2.5 sm:px-6 sm:py-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
-                    isSelected
-                      ? 'bg-black text-white shadow-sm'
-                      : 'bg-[#F0F0F0] text-zinc-600 hover:bg-zinc-200'
-                  }`}
-                >
-                  {size}
-                </button>
-              );
-            })}
-          </div>
-        </div>
 
         <hr className="my-6 border-zinc-200" />
 
